@@ -27,6 +27,8 @@ Serial.prints - we promise the final result isn't that many lines.
 
 #include <Preferences.h>
 
+
+Preferences preferences;
 RTC_DATA_ATTR uint16_t bootCount = 0;
 
 #include "DS18B20.h"
@@ -82,12 +84,21 @@ void gotoSleep(uint32_t seconds) {
 }
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(9600);
     while (!Serial)
         ;        // wait for serial to be initalised
     delay(2000); // give time to switch to the serial monitor
 
+    // Open the preferences with a unique namespace, e.g., "boot-count"
+    preferences.begin("boot-count", false);
+
+    // Get the current boot count (default to 0 if it does not exist)
+    bootCount = preferences.getUInt("count", 0);
+
     print_wakeup_reason();
+
+    // Save the updated boot count to non-volatile storage
+    preferences.putUInt("count", bootCount);
 
     Serial.println(F("Setup"));
 
@@ -105,7 +116,7 @@ void setup() {
     std::string uplinkPayload = RADIOLIB_LORAWAN_PAYLOAD;
     uint8_t fPort = 221;
 
-#define SENSOR_COUNT 4
+    #define SENSOR_COUNT 4
 
     uint8_t currentSensor = (bootCount - 1) % SENSOR_COUNT; // Starting at zero (0)
     switch (currentSensor) {
@@ -137,6 +148,9 @@ void setup() {
             fPort = currentSensor + 1;
             break;
     }
+
+    // Close the preferences
+    preferences.end();
 
     loRaWAN.setUplinkPayload(fPort, uplinkPayload);
 }
