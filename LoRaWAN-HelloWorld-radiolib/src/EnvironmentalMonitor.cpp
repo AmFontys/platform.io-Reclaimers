@@ -105,7 +105,6 @@ void setup() {
     preferences.putUInt("count", bootCount);
 
     Serial.println(F("Setup"));
-
     loRaWAN.setup(bootCount);
 
     loRaWAN.setDownlinkCB([](uint8_t fPort, uint8_t* downlinkPayload, std::size_t downlinkSize) {
@@ -114,7 +113,6 @@ void setup() {
         Serial.print(", ");
         GAIT::arrayDump(downlinkPayload, downlinkSize);
     });
-
     Serial.println(F("[APP] Aquire data and construct LoRaWAN uplink"));
 
     std::string uplinkPayload = RADIOLIB_LORAWAN_PAYLOAD;
@@ -123,11 +121,11 @@ void setup() {
     #define SENSOR_COUNT 4
 
     uint8_t currentSensor = (bootCount - 1) % SENSOR_COUNT; // Starting at zero (0)
+
     switch (currentSensor) {
         case 0:
             // Position
             gps.setup();
-
             if (gps.isValid()) {
                 fPort = currentSensor + 1; // 1 is location
                 uplinkPayload = std::to_string(gps.getLatitude()) + "," + std::to_string(gps.getLongitude()) + "," +
@@ -141,7 +139,7 @@ void setup() {
             break;
         case 2:
             // PH-value
-            ph4502c.setup(PH4502C_DEFAULT_CALIBRATION);
+            ph4502c.setup();
             uplinkPayload = std::to_string(ph4502c.getPHLevel());
             fPort = currentSensor + 1;
             break;
